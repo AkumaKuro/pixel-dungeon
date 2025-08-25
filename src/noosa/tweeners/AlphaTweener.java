@@ -1,21 +1,3 @@
-Pixel Dungeon
-=============
-
-Traditional roguelike game with pixel-art graphics and simple interface.
-
-Pixel Dungeon on GooglePlay:
-https://play.google.com/store/apps/details?id=com.watabou.pixeldungeon
-
-Official web-site:
-http://pixeldungeon.watabou.ru/
-
-Developer's blog:
-http://pixeldungeon.tumblr.com/
-
-To build the game you will need my unnamed game library:
-https://github.com/watabou/PD-classes
-
-
 /*
  * Copyright (C) 2012-2015 Oleg Dolya
  *
@@ -32,3 +14,28 @@ https://github.com/watabou/PD-classes
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+
+package com.watabou.noosa.tweeners;
+
+import com.watabou.noosa.Visual;
+
+public class AlphaTweener extends Tweener {
+
+	public Visual image;
+	
+	public float start;
+	public float delta;
+	
+	public AlphaTweener( Visual image, float alpha, float time ) {
+		super( image, time );
+		
+		this.image = image;
+		start = image.alpha();
+		delta = alpha - start;
+	}
+
+	@Override
+	protected void updateValues( float progress ) {
+		image.alpha( start + delta * progress );
+	}
+}

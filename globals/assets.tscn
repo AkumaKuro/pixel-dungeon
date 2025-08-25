@@ -1,6 +1,8 @@
-[gd_scene load_steps=2 format=3 uid="uid://bj82twviyw6ov"]
+[gd_scene load_steps=3 format=3 uid="uid://bj82twviyw6ov"]
 
-[ext_resource type="Script" uid="uid://eke6k6krcxdr" path="res://src/com/watabou/pixeldungeon/Assets.gd" id="1_msj1a"]
+[ext_resource type="Script" uid="uid://eke6k6krcxdr" path="res://src/Assets.gd" id="1_msj1a"]
+[ext_resource type="Texture2D" uid="uid://d2qegvorf8745" path="res://assets/icons.png" id="2_4tnv5"]
 
 [node name="Assets" type="Node"]
 script = ExtResource("1_msj1a")
+ICONS = ExtResource("2_4tnv5")

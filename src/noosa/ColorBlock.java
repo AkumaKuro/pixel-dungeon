@@ -1,21 +1,3 @@
-Pixel Dungeon
-=============
-
-Traditional roguelike game with pixel-art graphics and simple interface.
-
-Pixel Dungeon on GooglePlay:
-https://play.google.com/store/apps/details?id=com.watabou.pixeldungeon
-
-Official web-site:
-http://pixeldungeon.watabou.ru/
-
-Developer's blog:
-http://pixeldungeon.tumblr.com/
-
-To build the game you will need my unnamed game library:
-https://github.com/watabou/PD-classes
-
-
 /*
  * Copyright (C) 2012-2015 Oleg Dolya
  *
@@ -32,3 +14,31 @@ https://github.com/watabou/PD-classes
  * You should have received a copy of the GNU General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>
  */
+
+package com.watabou.noosa;
+
+import com.watabou.gltextures.TextureCache;
+
+public class ColorBlock extends Image implements Resizable {
+	
+	public ColorBlock( float width, float height, int color ) {
+		super( TextureCache.createSolid( color ) );
+		scale.set( width, height );
+		origin.set( 0, 0 );
+	}
+
+	@Override
+	public void size( float width, float height ) {
+		scale.set( width, height );
+	}
+	
+	@Override
+	public float width() {
+		return scale.x;
+	}
+	
+	@Override
+	public float height() {
+		return scale.y;
+	}
+}
