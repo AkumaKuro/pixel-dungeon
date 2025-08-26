@@ -1,21 +1,3 @@
-#/*
- #* Pixel Dungeon
- #* Copyright (C) 2012-2015 Oleg Dolya
- #*
- #* This program is free software: you can redistribute it and/or modify
- #* it under the terms of the GNU General Public License as published by
- #* the Free Software Foundation, either version 3 of the License, or
- #* (at your option) any later version.
- #*
- #* This program is distributed in the hope that it will be useful,
- #* but WITHOUT ANY WARRANTY; without even the implied warranty of
- #* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- #* GNU General Public License for more details.
- #*
- #* You should have received a copy of the GNU General Public License
- #* along with this program.  If not, see <http://www.gnu.org/licenses/>
- #*/
-
 @abstract class_name Char
 extends Actor
 
@@ -181,302 +163,296 @@ func attackSkill(target: Char ) -> int:
 
 func defenseSkill(enemy: Char) -> int:
 	return 0;
-}
+
 
 func defenseVerb() -> String:
 	return "dodged";
-}
+
 
 func dr() -> int:
 	return 0;
-}
+
 
 func damageRoll() -> int:
 	return 1;
-}
 
-func attackProc( Char enemy, int damage ) -> int:
+
+func attackProc(enemy: Char, damage: int) -> int:
 	return damage;
-}
 
-public int defenseProc( Char enemy, int damage ) {
+
+func defenseProc(enemy: Char, damage: int) -> int:
 	return damage;
-}
 
-public float speed() {
-	return buff( Cripple.class ) == null ? baseSpeed : baseSpeed * 0.5f;
-}
 
-public void damage( int dmg, Object src ) {
+func speed() -> float:
+	return baseSpeed if buff( Cripple.class ) == null else baseSpeed * 0.5
 
-	if (HP <= 0) {
+
+func damage(dmg: int, src: Object) -> void:
+
+	if (HP <= 0):
 		return;
-	}
+
 
 	Buff.detach( this, Frost.class );
 
-	Class<?> srcClass = src.getClass();
-	if (immunities().contains( srcClass )) {
+	var srcClass = src.getClass();
+	if (immunities().contains( srcClass )):
 		dmg = 0;
-	} else if (resistances().contains( srcClass )) {
+	elif (resistances().contains( srcClass )):
 		dmg = Random.IntRange( 0, dmg );
-	}
 
-	if (buff( Paralysis.class ) != null) {
-		if (Random.Int( dmg ) >= Random.Int( HP )) {
+
+	if (buff( Paralysis.class ) != null):
+		if (Random.Int( dmg ) >= Random.Int( HP )):
 			Buff.detach( this, Paralysis.class );
-			if (Dungeon.visible[pos]) {
+			if (Dungeon.visible[pos]):
 				GLog.i( TXT_OUT_OF_PARALYSIS, name );
-			}
-		}
-	}
+
+
+
 
 	HP -= dmg;
-	if (dmg > 0 || src instanceof Char) {
-		sprite.showStatus( HP > HT / 2 ?
-			CharSprite.WARNING :
-			CharSprite.NEGATIVE,
+	if (dmg > 0 || src is Char):
+		sprite.showStatus(CharSprite.WARNING if HP > HT / 2 else CharSprite.NEGATIVE,
 			Integer.toString( dmg ) );
-	}
-	if (HP <= 0) {
-		die( src );
-	}
-}
 
-public void destroy() {
+	if (HP <= 0):
+		die( src );
+
+
+
+func destroy() -> void:
 	HP = 0;
 	Actor.remove( this );
 	Actor.freeCell( pos );
-}
 
-public void die( Object src ) {
+
+func die(src: Object) -> void:
 	destroy();
 	sprite.die();
-}
 
-public boolean isAlive() {
+
+func isAlive() -> bool:
 	return HP > 0;
-}
 
-@Override
-protected void spend( float time ) {
 
-	float timeScale = 1f;
-	if (buff( Slow.class ) != null) {
-		timeScale *= 0.5f;
-	}
-	if (buff( Speed.class ) != null) {
-		timeScale *= 2.0f;
-	}
+#@Override
+func spend(time: float) -> void:
+
+	var timeScale: float = 1
+	if (buff( Slow.class ) != null):
+		timeScale *= 0.5
+
+	if (buff( Speed.class ) != null):
+		timeScale *= 2.0
+
 
 	super.spend( time / timeScale );
-}
 
-public HashSet<Buff> buffs() {
+
+func get_buffs() -> Array[Buff]:
 	return buffs;
-}
 
-@SuppressWarnings("unchecked")
-public <T extends Buff> HashSet<T> buffs( Class<T> c ) {
-	HashSet<T> filtered = new HashSet<T>();
-	for (Buff b : buffs) {
-		if (c.isInstance( b )) {
-			filtered.add( (T)b );
-		}
-	}
+
+#@SuppressWarnings("unchecked")
+func get_buffs_c(c) -> Array:
+	var filtered: Array = []
+	for b: Buff in buffs:
+		if (c.isInstance( b )):
+			filtered.add(b);
 	return filtered;
-}
 
-@SuppressWarnings("unchecked")
-public <T extends Buff> T buff( Class<T> c ) {
-	for (Buff b : buffs) {
-		if (c.isInstance( b )) {
-			return (T)b;
-		}
-	}
+
+#@SuppressWarnings("unchecked")
+func buff(c) -> Buff:
+	for b: Buff in buffs:
+		if (c.isInstance( b )):
+			return b;
+
+
 	return null;
-}
 
-public boolean isCharmedBy( Char ch ) {
-	int chID = ch.id();
-	for (Buff b : buffs) {
-		if (b instanceof Charm && ((Charm)b).object == chID) {
+
+func isCharmedBy(ch: Char) -> bool:
+	var chID: int = ch.id();
+	for b: Buff in buffs:
+		if (b is Charm && (b as Charm).object == chID):
 			return true;
-		}
-	}
-	return false;
-}
 
-public void add( Buff buff ) {
+
+	return false;
+
+
+func add( buff: Buff) -> void:
 
 	buffs.add( buff );
 	Actor.add( buff );
 
-	if (sprite != null) {
-		if (buff instanceof Poison) {
+	if (sprite != null):
+		if (buff is Poison):
 
 			CellEmitter.center( pos ).burst( PoisonParticle.SPLASH, 5 );
 			sprite.showStatus( CharSprite.NEGATIVE, "poisoned" );
 
-		} else if (buff instanceof Amok) {
+		elif (buff is Amok):
 
 			sprite.showStatus( CharSprite.NEGATIVE, "amok" );
 
-		} else if (buff instanceof Slow) {
+		elif (buff is Slow):
 
 			sprite.showStatus( CharSprite.NEGATIVE, "slowed" );
 
-		} else if (buff instanceof MindVision) {
+		elif (buff is MindVision):
 
 			sprite.showStatus( CharSprite.POSITIVE, "mind" );
 			sprite.showStatus( CharSprite.POSITIVE, "vision" );
 
-		} else if (buff instanceof Paralysis) {
+		elif (buff is Paralysis):
 
 			sprite.add( CharSprite.State.PARALYSED );
 			sprite.showStatus( CharSprite.NEGATIVE, "paralysed" );
 
-		} else if (buff instanceof Terror) {
+		elif (buff is Terror):
 
 			sprite.showStatus( CharSprite.NEGATIVE, "frightened" );
 
-		} else if (buff instanceof Roots) {
+		elif (buff is Roots):
 
 			sprite.showStatus( CharSprite.NEGATIVE, "rooted" );
 
-		} else if (buff instanceof Cripple) {
+		elif (buff is Cripple):
 
 			sprite.showStatus( CharSprite.NEGATIVE, "crippled" );
 
-		} else if (buff instanceof Bleeding) {
+		elif (buff is Bleeding):
 
 			sprite.showStatus( CharSprite.NEGATIVE, "bleeding" );
 
-		} else if (buff instanceof Vertigo) {
+		elif (buff is Vertigo):
 
 			sprite.showStatus( CharSprite.NEGATIVE, "dizzy" );
 
-		} else if (buff instanceof Sleep) {
+		elif (buff is Sleep):
 			sprite.idle();
-		}
 
-		  else if (buff instanceof Burning) {
+
+		elif (buff is Burning):
 			sprite.add( CharSprite.State.BURNING );
-		} else if (buff instanceof Levitation) {
+		elif (buff is Levitation):
 			sprite.add( CharSprite.State.LEVITATING );
-		} else if (buff instanceof Frost) {
+		elif (buff is Frost):
 			sprite.add( CharSprite.State.FROZEN );
-		} else if (buff instanceof Invisibility) {
-			if (!(buff instanceof Shadows)) {
+		elif (buff is Invisibility):
+			if (!(buff is Shadows)):
 				sprite.showStatus( CharSprite.POSITIVE, "invisible" );
-			}
-			sprite.add( CharSprite.State.INVISIBLE );
-		}
-	}
-}
 
-public void remove( Buff buff ) {
+			sprite.add( CharSprite.State.INVISIBLE );
+
+
+
+
+func remove(buff: Buff) -> void:
 
 	buffs.remove( buff );
 	Actor.remove( buff );
 
-	if (buff instanceof Burning) {
+	if (buff is Burning):
 		sprite.remove( CharSprite.State.BURNING );
-	} else if (buff instanceof Levitation) {
+	elif (buff is Levitation):
 		sprite.remove( CharSprite.State.LEVITATING );
-	} else if (buff instanceof Invisibility && invisible <= 0) {
+	elif (buff is Invisibility && invisible <= 0):
 		sprite.remove( CharSprite.State.INVISIBLE );
-	} else if (buff instanceof Paralysis) {
+	elif (buff is Paralysis):
 		sprite.remove( CharSprite.State.PARALYSED );
-	} else if (buff instanceof Frost) {
+	elif (buff is Frost):
 		sprite.remove( CharSprite.State.FROZEN );
-	}
-}
 
-public void remove( Class<? extends Buff> buffClass ) {
-	for (Buff buff : buffs( buffClass )) {
+
+
+func remove_buff(buffClass: Buff) -> void:
+	for buff: Buff in buffs( buffClass ):
 		remove( buff );
-	}
-}
 
 
 
-@Override
-protected void onRemove() {
-	for (Buff buff : buffs.toArray( new Buff[0] )) {
+
+
+#@Override
+func onRemove() -> void:
+	for buff: Buff in buffs.toArray( Buff.new[0] ):
 		buff.detach();
-	}
-}
 
-public void updateSpriteState() {
-	for (Buff buff:buffs) {
-		if (buff instanceof Burning) {
+
+
+func updateSpriteState() -> void:
+	for buff: Buff in buffs:
+		if (buff is Burning):
 			sprite.add( CharSprite.State.BURNING );
-		} else if (buff instanceof Levitation) {
+		elif (buff is Levitation):
 			sprite.add( CharSprite.State.LEVITATING );
-		} else if (buff instanceof Invisibility) {
+		elif (buff is Invisibility):
 			sprite.add( CharSprite.State.INVISIBLE );
-		} else if (buff instanceof Paralysis) {
+		elif (buff is Paralysis):
 			sprite.add( CharSprite.State.PARALYSED );
-		} else if (buff instanceof Frost) {
+		elif (buff is Frost):
 			sprite.add( CharSprite.State.FROZEN );
-		} else if (buff instanceof Light) {
+		elif (buff is Light):
 			sprite.add( CharSprite.State.ILLUMINATED );
-		}
-	}
-}
 
-public int stealth() {
+
+
+
+func stealth() -> int:
 	return 0;
-}
 
-public void move( int step ) {
 
-	if (Level.adjacent( step, pos ) && buff( Vertigo.class ) != null) {
+func move(step: int) -> void:
+
+	if (Level.adjacent( step, pos ) && buff( Vertigo.class ) != null):
 		step = pos + Level.NEIGHBOURS8[Random.Int( 8 )];
-		if (!(Level.passable[step] || Level.avoid[step]) || Actor.findChar( step ) != null) {
+		if (!(Level.passable[step] || Level.avoid[step]) || Actor.findChar( step ) != null):
 			return;
-		}
-	}
 
-	if (Dungeon.level.map[pos] == Terrain.OPEN_DOOR) {
+
+
+	if (Dungeon.level.map[pos] == Terrain.OPEN_DOOR):
 		Door.leave( pos );
-	}
+
 
 	pos = step;
 
-	if (flying && Dungeon.level.map[pos] == Terrain.DOOR) {
+	if (flying && Dungeon.level.map[pos] == Terrain.DOOR):
 		Door.enter( pos );
-	}
 
-	if (this != Dungeon.hero) {
+
+	if (this != Dungeon.hero):
 		sprite.visible = Dungeon.visible[pos];
-	}
-}
 
-public int distance( Char other ) {
+
+
+func distance(other: Char) -> int:
 	return Level.distance( pos, other.pos );
-}
 
-public void onMotionComplete() {
+
+func onMotionComplete() -> void:
 	next();
-}
 
-public void onAttackComplete() {
+
+func onAttackComplete() -> void:
 	next();
-}
 
-public void onOperateComplete() {
+
+func onOperateComplete() -> void:
 	next();
-}
 
-private static final HashSet<Class<?>> EMPTY = new HashSet<Class<?>>();
 
-public HashSet<Class<?>> resistances() {
+const EMPTY = []
+
+func resistances() -> Array:
 	return EMPTY;
-}
 
-public HashSet<Class<?>> immunities() {
+
+func immunities() -> Array:
 	return EMPTY;
-}
-}

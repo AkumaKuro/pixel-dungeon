@@ -1,20 +1,3 @@
-#/*
- #* Copyright (C) 2012-2015 Oleg Dolya
- #*
- #* This program is free software: you can redistribute it and/or modify
- #* it under the terms of the GNU General Public License as published by
- #* the Free Software Foundation, either version 3 of the License, or
- #* (at your option) any later version.
- #*
- #* This program is distributed in the hope that it will be useful,
- #* but WITHOUT ANY WARRANTY; without even the implied warranty of
- #* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- #* GNU General Public License for more details.
- #*
- #* You should have received a copy of the GNU General Public License
- #* along with this program.  If not, see <http://www.gnu.org/licenses/>
- #*/
-
 class_name TouchArea
 extends Visual #implements Signal.Listener<Touchscreen.Touch> {
 
@@ -24,86 +7,78 @@ var target: Visual
 
 var touch: Touchscreen.Touch = null;
 
-public TouchArea( Visual target ) {
+func _init(target: Visual):
 	super( 0, 0, 0, 0 );
 	this.target = target;
 
 	Touchscreen.event.add( this );
-}
 
-public TouchArea( float x, float y, float width, float height ) {
+func _init_area(x: float,y: float,width: float,height: float ):
 	super( x, y, width, height );
 	this.target = this;
 
 	visible = false;
 
 	Touchscreen.event.add( this );
-}
+
 
 #@Override
 func onSignal(touch: Touch) -> void:
 
-	if (!isActive()) {
+	if (!isActive()):
 		return;
-	}
 
-	boolean hit = touch != null && target.overlapsScreenPoint( (int)touch.start.x, (int)touch.start.y );
 
-	if (hit) {
+	var hit: bool = touch != null && target.overlapsScreenPoint(touch.start.x,touch.start.y );
+
+	if (hit):
 
 		Touchscreen.event.cancel();
 
-		if (touch.down) {
+		if (touch.down):
 
-			if (this.touch == null) {
+			if (this.touch == null):
 				this.touch = touch;
-			}
+
 			onTouchDown( touch );
 
-		} else {
+		else:
 
 			onTouchUp( touch );
 
-			if (this.touch == touch) {
+			if (this.touch == touch):
 				this.touch = null;
 				onClick( touch );
-			}
 
-		}
-
-	} else {
-
-		if (touch == null && this.touch != null) {
+	else:
+		if (touch == null && this.touch != null):
 			onDrag( this.touch );
-		}
 
-		else if (this.touch != null && touch != null && !touch.down) {
+		elif (self.touch != null && touch != null && !touch.down):
 			onTouchUp( touch );
 			this.touch = null;
-		}
 
-	}
-}
 
-protected void onTouchDown( Touch touch ) {
-}
 
-protected void onTouchUp( Touch touch ) {
-}
 
-protected void onClick( Touch touch ) {
-}
 
-protected void onDrag( Touch touch ) {
-}
+func onTouchDown(touch: Touch) -> void:
+	pass
 
-public void reset() {
+func onTouchUp(touch: Touch) -> void:
+	pass
+
+func onClick(touch: Touch) -> void:
+	pass
+
+func onDrag(touch: Touch) -> void:
+	pass
+
+func reset() -> void:
 	touch = null;
-}
 
-@Override
-public void destroy() {
-	Touchscreen.event.remove( this );
+
+#@Override
+func destroy() -> void:
+	Touchscreen.event.remove( self );
 	super.destroy();
-}
-}

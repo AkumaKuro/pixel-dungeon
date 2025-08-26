@@ -2,56 +2,50 @@ class_name Scene
 extends Group
 
 
-var keyListener: Signal.Listener[Keys.Key]
+var keyListener: Listener #[Keys.Key]
 
 func create() -> void:
-	.event.add( keyListener = new Signal.Listener<Keys.Key>() {
-		@Override
-		public void onSignal( Keys.Key key ) {
-			if (Game.instance != null && key.pressed) {
-				switch (key.code) {
-				case Keys.BACK:
-					onBackPressed();
-					break;
-				case Keys.MENU:
-					onMenuPressed();
-					break;
-				}
-			}
-		}
-	} );
-}
+	keyListener = Listener.new() #<Keys.Key>
+	Keys.event.add(keyListener)
+	keyListener.onSignal.bind(
+		func(key: Keys.Key):
+			if (Game.instance != null && key.pressed):
+				match key.code:
+					Keys.BACK:
+						onBackPressed();
 
-@Override
-public void destroy() {
+					Keys.MENU:
+						onMenuPressed();
+	)
+
+
+#@Override
+func destroy() -> void:
 	Keys.event.remove( keyListener );
 	super.destroy();
-}
 
-public void pause() {
 
-}
+func pause() -> void:
+	pass
 
-public void resume() {
 
-}
+func resume() -> void:
+	pass
 
-@Override
-public void update() {
+
+#
+func update() -> void:
 	super.update();
-}
 
-@Override
-public Camera camera() {
+
+#
+func camera() -> Camera:
 	return Camera.main;
-}
 
-protected void onBackPressed() {
-	Game.instance.finish();
-}
 
-protected void onMenuPressed() {
+func onBackPressed() -> void:
+	Game.instance.finish()
 
-}
 
-}
+func onMenuPressed() -> void:
+	pass

@@ -1,21 +1,3 @@
-#/*
- #* Pixel Dungeon
- #* Copyright (C) 2012-2015 Oleg Dolya
- #*
- #* This program is free software: you can redistribute it and/or modify
- #* it under the terms of the GNU General Public License as published by
- #* the Free Software Foundation, either version 3 of the License, or
- #* (at your option) any later version.
- #*
- #* This program is distributed in the hope that it will be useful,
- #* but WITHOUT ANY WARRANTY; without even the implied warranty of
- #* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- #* GNU General Public License for more details.
- #*
- #* You should have received a copy of the GNU General Public License
- #* along with this program.  If not, see <http://www.gnu.org/licenses/>
- #*/
-
 class_name Item
 extends Bundlable
 
@@ -38,523 +20,509 @@ const TIME_TO_DROP: float		= 0.5
 const AC_DROP: String = "DROP";
 const AC_THROW: String = "THROW";
 
-public String defaultAction;
+var defaultAction: String
 
-protected String name = "smth";
-protected int image = 0;
+var name: String = "smth";
+var image: int = 0;
 
 
-public boolean stackable = false;
-protected int quantity = 1;
+var stackable: bool = false;
+var quantity: int = 1;
 
-private int level = 0;
-private int durability = maxDurability();
-public boolean levelKnown = false;
+var level: int = 0;
+var durability: int = maxDurability();
+var levelKnown: bool = false;
 
-public boolean cursed;
-public boolean cursedKnown;
+var cursed: bool;
+var cursedKnown: bool;
 
-public boolean unique = false;
+var unique: bool = false;
 
-private static Comparator<Item> itemComparator = new Comparator<Item>() {
-	@Override
-	public int compare( Item lhs, Item rhs ) {
-		return Generator.Category.order( lhs ) - Generator.Category.order( rhs );
-	}
-};
+static var itemComparator: Comparator = Comparator.new()
 
-public ArrayList<String> actions( Hero hero ) {
-	ArrayList<String> actions = new ArrayList<String>();
+func _init() -> void:
+	itemComparator.compare.bind(
+		func(lhs: Item, rhs: Item):
+			return Generator.Category.order( lhs ) - Generator.Category.order( rhs );
+	)
+
+	thrower.onSelect.bind(
+		func(target: int):
+			if (target != null):
+				curItem.cast( curUser, target );
+	)
+	thrower.prompt.bind(
+		func() -> String:
+			return "Choose direction of throw";
+	)
+
+func actions(hero: Hero) -> PackedStringArray:
+	var actions: PackedStringArray = []
 	actions.add( AC_DROP );
 	actions.add( AC_THROW );
 	return actions;
-}
 
-public boolean doPickUp( Hero hero ) {
-	if (collect( hero.belongings.backpack )) {
 
-		GameScene.pickUp( this );
+func doPickUp(hero: Hero) -> bool:
+	if (collect( hero.belongings.backpack )):
+
+		GameScene.pickUp( self );
 		Sample.INSTANCE.play( Assets.SND_ITEM );
 		hero.spendAndNext( TIME_TO_PICK_UP );
 		return true;
 
-	} else {
+	else:
 		return false;
-	}
-}
 
-public void doDrop( Hero hero ) {
+
+
+func doDrop(hero: Hero ) -> void:
 	hero.spendAndNext( TIME_TO_DROP );
 	Dungeon.level.drop( detachAll( hero.belongings.backpack ), hero.pos ).sprite.drop( hero.pos );
-}
 
-public void doThrow( Hero hero ) {
+
+func doThrow(hero: Hero ) -> void:
 	GameScene.selectCell( thrower );
-}
 
-public void execute( Hero hero, String action ) {
+
+func execute_action(hero: Hero, action: String ) -> void:
 
 	curUser = hero;
-	curItem = this;
+	curItem = self;
 
-	if (action.equals( AC_DROP )) {
+	if (action.equals( AC_DROP )):
 
 		doDrop( hero );
 
-	} else if (action.equals( AC_THROW )) {
+	elif (action.equals( AC_THROW )):
 
 		doThrow( hero );
 
-	}
-}
 
-public void execute( Hero hero ) {
+
+
+func execute(hero: Hero) -> void:
 	execute( hero, defaultAction );
-}
 
-protected void onThrow( int cell ) {
-	Heap heap = Dungeon.level.drop( this, cell );
-	if (!heap.isEmpty()) {
+
+func onThrow(cell: int) -> void:
+	var heap: Heap = Dungeon.level.drop( self, cell );
+	if (!heap.isEmpty()):
 		heap.sprite.drop( cell );
-	}
-}
 
-public boolean collect( Bag container ) {
 
-	ArrayList<Item> items = container.items;
 
-	if (items.contains( this )) {
+func collect_bag(container: Bag) -> bool:
+
+	var items: Array[Item] = container.items;
+
+	if (self in items):
 		return true;
-	}
 
-	for (Item item:items) {
-		if (item instanceof Bag && ((Bag)item).grab( this )) {
-			return collect( (Bag)item );
-		}
-	}
 
-	if (stackable) {
+	for item: Item in items:
+		if (item is Bag && (item as Bag).grab( self )):
+			return collect(item as Bag);
 
-		Class<?>c = getClass();
-		for (Item item:items) {
-			if (item.getClass() == c) {
+
+
+	if (stackable):
+
+		var c = getClass();
+		for item: Item in items:
+			if (item.getClass() == c):
 				item.quantity += quantity;
 				item.updateQuickslot();
 				return true;
-			}
-		}
-	}
 
-	if (items.size() < container.size) {
 
-		if (Dungeon.hero != null && Dungeon.hero.isAlive()) {
+
+
+	if (items.size() < container.size):
+
+		if (Dungeon.hero != null && Dungeon.hero.isAlive()):
 			Badges.validateItemLevelAquired( this );
-		}
+
 
 		items.add( this );
 		QuickSlot.refresh();
 		Collections.sort( items, itemComparator );
 		return true;
 
-	} else {
+	else:
 
 		GLog.n( TXT_PACK_FULL, name() );
 		return false;
 
-	}
-}
 
-public boolean collect() {
+
+
+func collect() -> bool:
 	return collect( Dungeon.hero.belongings.backpack );
-}
 
-public final Item detach( Bag container ) {
 
-	if (quantity <= 0) {
+func detach(container: Bag) -> Item:
+
+	if (quantity <= 0):
 
 		return null;
 
-	} else
-	if (quantity == 1) {
+	elif (quantity == 1):
 
 		return detachAll( container );
 
-	} else {
+	else:
 
-		quantity--;
+		quantity -= 1
 		updateQuickslot();
 
-		try {
-			Item detached = getClass().newInstance();
-			detached.onDetach( );
-			return detached;
-		} catch (Exception e) {
-			return null;
-		}
-	}
-}
 
-public final Item detachAll( Bag container ) {
+		var detached: Item = getClass().newInstance();
+		detached.onDetach( );
+		return detached;
 
-	for (Item item : container.items) {
-		if (item == this) {
+
+func detachAll(container: Bag) -> Item:
+
+	for item: Item in container.items:
+		if (item == this):
 			container.items.remove( this );
 			item.onDetach( );
 			QuickSlot.refresh();
 			return this;
-		} else if (item instanceof Bag) {
-			Bag bag = (Bag)item;
-			if (bag.contains( this )) {
+		elif (item is Bag):
+			var bag: Bag = item as Bag
+			if (bag.contains( this )):
 				return detachAll( bag );
-			}
-		}
-	}
+
+
+
 
 	return this;
-}
 
-protected void onDetach( ) {
-}
+func onDetach( ) -> void:
+	pass
 
-public int level() {
+
+func get_level() -> int:
 	return level;
-}
 
-public void level( int value ) {
+
+func set_level(value: int) -> void:
 	level = value;
-}
 
-public int effectiveLevel() {
-	return isBroken() ? 0 : level;
-}
 
-public Item upgrade() {
+func effectiveLevel() -> int:
+	return  0 if isBroken() else level;
+
+
+func upgrade() -> Item:
 
 	cursed = false;
 	cursedKnown = true;
 
-	level++;
+	level += 1
 	fix();
 
 	return this;
-}
 
-final public Item upgrade( int n ) {
-	for (int i=0; i < n; i++) {
+
+func upgrade_i(n: int) -> Item:
+	for i: int in range(n):
 		upgrade();
-	}
+
 
 	return this;
-}
 
-public Item degrade() {
 
-	this.level--;
+func degrade() -> Item:
+
+	this.level -= 1
 	fix();
 
 	return this;
-}
 
-final public Item degrade( int n ) {
-	for (int i=0; i < n; i++) {
+
+func degrade_i(n: int) -> Item:
+	for i: int in range(n):
 		degrade();
-	}
+
 
 	return this;
-}
 
-public void use() {
-	if (level > 0 && !isBroken()) {
-		int threshold = (int)(maxDurability() * DURABILITY_WARNING_LEVEL);
-		if (durability-- >= threshold && threshold > durability && levelKnown) {
+
+func use() -> void:
+	if (level > 0 && !isBroken()):
+		var threshold: int = (maxDurability() * DURABILITY_WARNING_LEVEL);
+		if (durability >= threshold && threshold > durability && levelKnown):
 			GLog.w( TXT_GONNA_BREAK, name() );
-		}
-		if (isBroken()) {
+
+		durability -= 1
+		if (isBroken()):
 			getBroken();
-			if (levelKnown) {
+			if (levelKnown):
 				GLog.n( TXT_BROKEN, name() );
 				Dungeon.hero.interrupt();
 
-				CharSprite sprite = Dungeon.hero.sprite;
-				PointF point = sprite.center().offset( 0, -16 );
-				if (this instanceof Weapon) {
+				var sprite: CharSprite = Dungeon.hero.sprite;
+				var point: PointF = sprite.center().offset( 0, -16 );
+				if (this is Weapon):
 					sprite.parent.add( Degradation.weapon( point ) );
-				} else if (this instanceof Armor) {
+				elif (this is Armor):
 					sprite.parent.add( Degradation.armor( point ) );
-				} else if (this instanceof Ring) {
+				elif (this is Ring):
 					sprite.parent.add( Degradation.ring( point ) );
-				} else if (this instanceof Wand) {
+				elif (this is Wand):
 					sprite.parent.add( Degradation.wand( point ) );
-				}
+
 				Sample.INSTANCE.play( Assets.SND_DEGRADE );
-			}
-		}
-	}
-}
 
-public boolean isBroken() {
+
+
+
+
+func isBroken() -> bool:
 	return durability <= 0;
-}
 
-public void getBroken() {
-}
 
-public void fix() {
+func getBroken() -> void:
+	pass
+
+func fix() -> void:
 	durability = maxDurability();
-}
 
-public void polish() {
-	if (durability < maxDurability()) {
-		durability++;
-	}
-}
 
-public int durability() {
+func polish() -> void:
+	if (durability < maxDurability()):
+		durability += 1
+
+
+
+func get_durability() -> int:
 	return durability;
-}
 
-public int maxDurability( int lvl ) {
+
+func maxDurability_l(lvl: int) -> int:
 	return 1;
-}
 
-final public int maxDurability() {
+
+func maxDurability() -> int:
 	return maxDurability( level );
-}
 
-public int visiblyUpgraded() {
-	return levelKnown ? level : 0;
-}
 
-public boolean visiblyCursed() {
+func visiblyUpgraded() -> int:
+	return level if levelKnown else 0;
+
+
+func visiblyCursed() -> bool:
 	return cursed && cursedKnown;
-}
 
-public boolean visiblyBroken() {
+
+func visiblyBroken() -> bool:
 	return levelKnown && isBroken();
-}
 
-public boolean isUpgradable() {
+
+func isUpgradable() -> bool:
 	return true;
-}
 
-public boolean isIdentified() {
+
+func isIdentified() -> bool:
 	return levelKnown && cursedKnown;
-}
 
-public boolean isEquipped( Hero hero ) {
+
+func isEquipped(hero: Hero) -> bool:
 	return false;
-}
 
-public Item identify() {
+
+func identify() -> Item:
 
 	levelKnown = true;
 	cursedKnown = true;
 
 	return this;
-}
 
-public static void evoke( Hero hero ) {
+
+static func evoke(hero: Hero) -> void:
 	hero.sprite.emitter().burst( Speck.factory( Speck.EVOKE ), 5 );
-}
 
-@Override
-public String toString() {
+#@Override
+func toString() -> String:
 
-	if (levelKnown && level != 0) {
-		if (quantity > 1) {
+	if (levelKnown && level != 0):
+		if (quantity > 1):
 			return Utils.format( TXT_TO_STRING_LVL_X, name(), level, quantity );
-		} else {
+		else:
 			return Utils.format( TXT_TO_STRING_LVL, name(), level );
-		}
-	} else {
-		if (quantity > 1) {
+
+	else:
+		if (quantity > 1):
 			return Utils.format( TXT_TO_STRING_X, name(), quantity );
-		} else {
+		else:
 			return Utils.format( TXT_TO_STRING, name() );
-		}
-	}
-}
 
-public String name() {
+
+
+
+func get_name() -> String:
 	return name;
-}
 
-public final String trueName() {
+
+func trueName() -> String:
 	return name;
-}
 
-public int image() {
+
+func get_image() -> int:
 	return image;
-}
 
-public ItemSprite.Glowing glowing() {
+
+func glowing() -> ItemSprite.Glowing:
 	return null;
-}
 
-public String info() {
+
+func info() -> String:
 	return desc();
-}
 
-public String desc() {
+
+func desc() -> String:
 	return "";
-}
 
-public int quantity() {
+
+func get_quantity() -> int:
 	return quantity;
-}
 
-public void quantity( int value ) {
+
+func set_quantity(value: int) -> void:
 	quantity = value;
-}
 
-public int price() {
+
+func price() -> int:
 	return 0;
-}
 
-public int considerState( int price ) {
-	if (cursed && cursedKnown) {
+
+func considerState(price: int) -> int:
+	if (cursed && cursedKnown):
 		price /= 2;
-	}
-	if (levelKnown) {
-		if (level > 0) {
+
+	if (levelKnown):
+		if (level > 0):
 			price *= (level + 1);
-			if (isBroken()) {
+			if (isBroken()):
 				price /= 2;
-			}
-		} else if (level < 0) {
+
+		elif (level < 0):
 			price /= (1 - level);
-		}
-	}
-	if (price < 1) {
+
+
+	if (price < 1):
 		price = 1;
-	}
+
 
 	return price;
-}
 
-public static Item virtual( Class<? extends Item> cl ) {
-	try {
 
-		Item item = (Item)cl.newInstance();
-		item.quantity = 0;
-		return item;
+static func virtual(cl: Item) -> Item:
+	var item: Item = cl.newInstance() as Item
+	item.quantity = 0;
+	return item;
 
-	} catch (Exception e) {
-		return null;
-	}
-}
-
-public Item random() {
+func random() -> Item:
 	return this;
-}
 
-public String status() {
-	return quantity != 1 ? Integer.toString( quantity ) : null;
-}
 
-public void updateQuickslot() {
+func status() -> String:
+	return str( quantity ) if quantity != 1 else null;
 
-	if (stackable) {
-		Class<? extends Item> cl = getClass();
-		if (QuickSlot.primaryValue == cl || QuickSlot.secondaryValue == cl) {
+
+func updateQuickslot() -> void:
+
+	if (stackable):
+		var cl: Item = getClass();
+		if (QuickSlot.primaryValue == cl || QuickSlot.secondaryValue == cl):
 			QuickSlot.refresh();
-		}
-	} else if (QuickSlot.primaryValue == this || QuickSlot.secondaryValue == this) {
+
+	elif (QuickSlot.primaryValue == this || QuickSlot.secondaryValue == this):
 		QuickSlot.refresh();
-	}
-}
 
-private static final String QUANTITY		= "quantity";
-private static final String LEVEL			= "level";
-private static final String LEVEL_KNOWN		= "levelKnown";
-private static final String CURSED			= "cursed";
-private static final String CURSED_KNOWN	= "cursedKnown";
-private static final String DURABILITY		= "durability";
 
-@Override
-public void storeInBundle( Bundle bundle ) {
+
+const QUANTITY: String		= "quantity";
+const LEVEL: String			= "level";
+const LEVEL_KNOWN: String		= "levelKnown";
+const CURSED: String			= "cursed";
+const CURSED_KNOWN: String	= "cursedKnown";
+const DURABILITY: String		= "durability";
+
+#@Override
+func storeInBundle(bundle: Bundle) -> void:
 	bundle.put( QUANTITY, quantity );
 	bundle.put( LEVEL, level );
 	bundle.put( LEVEL_KNOWN, levelKnown );
 	bundle.put( CURSED, cursed );
 	bundle.put( CURSED_KNOWN, cursedKnown );
-	if (isUpgradable()) {
+	if (isUpgradable()):
 		bundle.put( DURABILITY, durability );
-	}
-	QuickSlot.save( bundle, this );
-}
 
-@Override
-public void restoreFromBundle( Bundle bundle ) {
+	QuickSlot.save( bundle, this );
+
+
+#@Override
+func restoreFromBundle(bundle: Bundle) -> void:
 	quantity	= bundle.getInt( QUANTITY );
 	levelKnown	= bundle.getBoolean( LEVEL_KNOWN );
 	cursedKnown	= bundle.getBoolean( CURSED_KNOWN );
 
-	int level = bundle.getInt( LEVEL );
-	if (level > 0) {
+	var level: int = bundle.getInt( LEVEL );
+	if (level > 0):
 		upgrade( level );
-	} else if (level < 0) {
+	elif (level < 0):
 		degrade( -level );
-	}
+
 
 	cursed	= bundle.getBoolean( CURSED );
 
-	if (isUpgradable()) {
+	if (isUpgradable()):
 		durability = bundle.getInt( DURABILITY );
-	}
+
 
 	QuickSlot.restore( bundle, this );
-}
 
-public void cast( final Hero user, int dst ) {
 
-	final int cell = Ballistica.cast( user.pos, dst, false, true );
+func cast(user: Hero, dst: int) -> void:
+
+	var cell: int = Ballistica.cast( user.pos, dst, false, true );
 	user.sprite.zap( cell );
 	user.busy();
 
-	Sample.INSTANCE.play( Assets.SND_MISS, 0.6f, 0.6f, 1.5f );
+	Sample.INSTANCE.play( Assets.SND_MISS, 0.6, 0.6, 1.5 );
 
-	Char enemy = Actor.findChar( cell );
+	var enemy: Char = Actor.findChar( cell );
 	QuickSlot.target( this, enemy );
 
-	// FIXME!!!
-	float delay = TIME_TO_THROW;
-	if (this instanceof MissileWeapon) {
-		delay *= ((MissileWeapon)this).speedFactor( user );
-		if (enemy != null) {
-			SnipersMark mark = user.buff( SnipersMark.class );
-			if (mark != null) {
-				if (mark.object == enemy.id()) {
-					delay *= 0.5f;
-				}
+	# FIXME!!!
+	var delay: float = TIME_TO_THROW;
+	if (this is MissileWeapon):
+		delay *= (this as MissileWeapon).speedFactor( user );
+		if (enemy != null):
+			var mark: SnipersMark = user.buff( SnipersMark.class );
+			if (mark != null):
+				if (mark.object == enemy.id()):
+					delay *= 0.5
+
 				user.remove( mark );
-			}
-		}
-	}
-	final float finalDelay = delay;
 
-	((MissileSprite)user.sprite.parent.recycle( MissileSprite.class )).
-		reset( user.pos, cell, this, new Callback() {
-			@Override
-			public void call() {
-				Item.this.detach( user.belongings.backpack ).onThrow( cell );
-				user.spendAndNext( finalDelay );
-			}
-		} );
-}
 
-protected static Hero curUser = null;
-protected static Item curItem = null;
-protected static CellSelector.Listener thrower = new CellSelector.Listener() {
-	@Override
-	public void onSelect( Integer target ) {
-		if (target != null) {
-			curItem.cast( curUser, target );
-		}
-	}
-	@Override
-	public String prompt() {
-		return "Choose direction of throw";
-	}
-};
-}
+
+	var finalDelay: float = delay;
+
+	var sprite: MissileSprite = user.sprite.parent.recycle( MissileSprite.class )
+
+	sprite.reset( user.pos, cell, this,
+		func():
+			Item.this.detach( user.belongings.backpack ).onThrow( cell );
+			user.spendAndNext( finalDelay );
+	)
+
+
+static var curUser: Hero = null;
+static var curItem: Item = null;
+static var thrower: CellSelector.Listener = CellSelector.Listener.new()

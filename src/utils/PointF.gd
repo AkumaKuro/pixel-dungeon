@@ -24,10 +24,7 @@ const G2R: float	= PI / 180;
 var x: float
 var y: float
 
-func _init() -> void:
-	pass
-
-func _init_all(x: float, y: float) -> void:
+func _init(x: float, y: float) -> void:
 	self.x = x;
 	self.y = y;
 
@@ -43,7 +40,7 @@ func _init_p(p: Point) -> void:
 
 
 func clone() -> PointF:
-	return PointF.new(self);
+	return PointF.new(x, y);
 
 func scale(f: float) -> PointF:
 	self.x *= f;
@@ -51,92 +48,90 @@ func scale(f: float) -> PointF:
 	return self;
 
 
-public PointF invScale( float f ) {
-	this.x /= f;
-	this.y /= f;
-	return this;
-}
+func invScale( f: float ) -> PointF:
+	self.x /= f;
+	self.y /= f;
+	return self;
 
-public PointF set( float x, float y ) {
-	this.x = x;
-	this.y = y;
-	return this;
-}
 
-public PointF set( PointF p ) {
-	this.x = p.x;
-	this.y = p.y;
-	return this;
-}
+func set_float(x: float,y: float ) -> PointF:
+	self.x = x;
+	self.y = y;
+	return self;
 
-public PointF set( float v ) {
-	this.x = v;
-	this.y = v;
-	return this;
-}
 
-public PointF polar( float a, float l ) {
-	this.x = l * FloatMath.cos( a );
-	this.y = l * FloatMath.sin( a );
-	return this;
-}
+func set_point( p: PointF ) -> PointF:
+	self.x = p.x;
+	self.y = p.y;
+	return self;
 
-public PointF offset( float dx, float dy ) {
+
+func set_v(v: float ) -> PointF:
+	self.x = v;
+	self.y = v;
+	return self;
+
+
+func polar( a: float, l: float ) -> PointF:
+	self.x = l * cos( a );
+	self.y = l * sin( a );
+	return self;
+
+
+func offset(  dx: float,  dy: float ) -> PointF:
 	x += dx;
 	y += dy;
-	return this;
-}
+	return self;
 
-public PointF offset( PointF p ) {
+
+func offset_point( p: PointF ) -> PointF:
 	x += p.x;
 	y += p.y;
-	return this;
-}
+	return self;
 
-public PointF negate() {
+
+func negate() -> PointF:
 	x = -x;
 	y = -y;
-	return this;
-}
+	return self;
+
 
 func normalize() -> PointF:
 	var l: float = length();
 	x /= l;
 	y /= l;
-	return this;
+	return self;
 
 
 func floor() -> Point:
 	return Point.new(floor(x), floor(y));
-}
+
 
 func length() -> float:
 	return sqrt( x * x + y * y );
 
-static func sum( PointF a, PointF b ) -> PointF:
+static func sum( a: PointF, b: PointF ) -> PointF:
 	return PointF.new( a.x + b.x, a.y + b.y );
-}
 
-static func diff( PointF a, PointF b ) -> PointF:
+
+static func diff(a: PointF,b: PointF ) -> PointF:
 	return PointF.new( a.x - b.x, a.y - b.y );
-}
 
-static func inter( PointF a, PointF b, float d ) -> PointF:
+
+static func inter(  a: PointF,  b: PointF,  d: float ) -> PointF:
 	return PointF.new( a.x + (b.x - a.x) * d, a.y + (b.y - a.y) * d );
-}
 
-public static float distance( PointF a, PointF b ) {
-	float dx = a.x - b.x;
-	float dy = a.y - b.y;
-	return FloatMath.sqrt( dx * dx + dy * dy );
-}
 
-public static float angle( PointF start, PointF end ) {
-	return (float)Math.atan2( end.y - start.y, end.x - start.x );
-}
+static func distance(  a: PointF,  b: PointF ) -> float:
+	var dx: float = a.x - b.x;
+	var dy: float = a.y - b.y;
+	return sqrt( dx * dx + dy * dy );
 
-@Override
-public String toString() {
-	return "" + x + ", " + y;
-}
-}
+
+static func angle(  start: PointF,  end: PointF ) -> float:
+	return atan2( end.y - start.y, end.x - start.x );
+
+
+#@Override
+func _to_string() -> String:
+	return "%s, %s" % [x, y]
