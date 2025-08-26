@@ -32,7 +32,7 @@ var buffs: Array[Buff] = [] # TODO HashSet
 
 #@Override
 func act() -> bool:
-	Dungeon.level.updateFieldOfView( this );
+	Dungeon.level.updateFieldOfView( self );
 	return false;
 
 

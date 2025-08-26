@@ -24,7 +24,7 @@ const G2R: float	= PI / 180;
 var x: float
 var y: float
 
-func _init(x: float, y: float) -> void:
+func _init(x: float = 0, y: float = 0) -> void:
 	self.x = x;
 	self.y = y;
 

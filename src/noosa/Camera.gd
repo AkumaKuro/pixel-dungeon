@@ -32,7 +32,7 @@ var shakeX: float
 var shakeY: float
 
 static func reset() -> Camera:
-	return reset( createFullscreen( 1 ) );
+	return reset_c( createFullscreen( 1 ) );
 
 
 static func reset_c(newCamera: Camera) -> Camera:
@@ -49,151 +49,153 @@ static func reset_c(newCamera: Camera) -> Camera:
 	return main
 
 
-public static Camera add( Camera camera ) {
-	all.add( camera );
+static func add(camera: Camera) -> Camera:
+	all.append( camera );
 	return camera;
-}
 
-public static Camera remove( Camera camera ) {
-	all.remove( camera );
+
+static func remove_camera(camera: Camera) -> Camera:
+	all.erase( camera );
 	return camera;
-}
 
-public static void updateAll() {
-	int length = all.size();
-	for (int i=0; i < length; i++) {
-		Camera c = all.get( i );
-		if (c.exists && c.active) {
+
+static func updateAll() -> void:
+	var length: int = all.size();
+	for i: int in range(length):
+		var c: Camera = all.get( i );
+		if (c.exists && c.active):
 			c.update();
-		}
-	}
-}
 
-public static Camera createFullscreen( float zoom ) {
-	int w = (int)Math.ceil( Game.width / zoom );
-	int h = (int)Math.ceil( Game.height / zoom );
-	return new Camera(
-		(int)(Game.width - w * zoom) / 2,
-		(int)(Game.height - h * zoom) / 2,
+
+
+
+static func createFullscreen(zoom: float) -> Camera:
+	var w: int = ceili( Game.width / zoom );
+	var h: int = ceili( Game.height / zoom );
+	return Camera.new(
+		(Game.width - w * zoom) / 2,
+		(Game.height - h * zoom) / 2,
 		w, h, zoom );
-}
 
-public Camera( int x, int y, int width, int height, float zoom ) {
 
-	this.x = x;
-	this.y = y;
-	this.width = width;
-	this.height = height;
-	this.zoom = zoom;
+func _init(x: int,y: int,width: int,height: int, zoom: float) -> void:
+
+	self.x = x;
+	self.y = y;
+	self.width = width;
+	self.height = height;
+	self.zoom = zoom;
 
 	screenWidth = (int)(width * zoom);
 	screenHeight = (int)(height * zoom);
 
-	scroll = new PointF();
+	scroll = PointF.new();
 
-	matrix = new float[16];
+	matrix = []
+	matrix.resize(16)
 	Matrix.setIdentity( matrix );
-}
 
-@Override
-public void destroy() {
+
+#@Override
+func destroy() -> void:
 	target = null;
 	matrix = null;
-}
 
-public void zoom( float value ) {
+
+func zoom_f(value: float) -> void:
 	zoom( value,
 		scroll.x + width / 2,
 		scroll.y + height / 2 );
-}
 
-public void zoom( float value, float fx, float fy ) {
+
+func zoom_pos(value: float,fx: float,fy: float ) -> void:
 
 	zoom = value;
 	width = (int)(screenWidth / zoom);
 	height = (int)(screenHeight / zoom);
 
 	focusOn( fx, fy );
-}
 
-public void resize( int width, int height ) {
+
+func resize(width: int, height: int) -> void:
 	this.width = width;
 	this.height = height;
 	screenWidth = (int)(width * zoom);
 	screenHeight = (int)(height * zoom);
-}
 
-@Override
-public void update() {
+
+#@Override
+func update() -> void:
 	super.update();
 
-	if (target != null) {
+	if (target != null):
 		focusOn( target );
-	}
 
-	if ((shakeTime -= Game.elapsed) > 0) {
-		float damping = shakeTime / shakeDuration;
-		shakeX = Random.Float( -shakeMagX, +shakeMagX ) * damping;
-		shakeY = Random.Float( -shakeMagY, +shakeMagY ) * damping;
-	} else {
+
+	shakeTime -= Game.elapsed
+	if (shakeTime > 0):
+		var damping: float = shakeTime / shakeDuration;
+		shakeX = randf_range( -shakeMagX, +shakeMagX ) * damping;
+		shakeY = randf_range( -shakeMagY, +shakeMagY ) * damping;
+	else:
 		shakeX = 0;
 		shakeY = 0;
-	}
+
 
 	updateMatrix();
-}
 
-public PointF center() {
-	return new PointF( width / 2, height / 2 );
-}
 
-public boolean hitTest( float x, float y ) {
+func center() -> PointF:
+	return PointF.new( width / 2, height / 2 );
+
+
+func hitTest( x: float, y: float ) -> bool:
 	return x >= this.x && y >= this.y && x < this.x + screenWidth && y < this.y + screenHeight;
-}
 
-public void focusOn( float x, float y ) {
+
+func focusOn(x: float,y: float ) -> void:
 	scroll.set( x - width / 2, y - height / 2 );
-}
 
-public void focusOn( PointF point ) {
+
+func focusOn_point(point: PointF) -> void:
 	focusOn( point.x, point.y );
-}
 
-public void focusOn( Visual visual ) {
+
+func focusOn_v(visual: Visual) -> void:
 	focusOn( visual.center() );
-}
 
-public PointF screenToCamera( int x, int y ) {
-	return new PointF(
+
+func screenToCamera(x: float,y: float ) -> PointF:
+	return PointF.new(
 		(x - this.x) / zoom + scroll.x,
 		(y - this.y) / zoom + scroll.y );
-}
 
-public Point cameraToScreen( float x, float y ) {
-	return new Point(
-		(int)((x - scroll.x) * zoom + this.x),
-		(int)((y - scroll.y) * zoom + this.y));
-}
 
-public float screenWidth() {
+func cameraToScreen(x: float,y: float ) -> Point:
+	return Point.new(
+		((x - scroll.x) * zoom + this.x),
+		((y - scroll.y) * zoom + this.y));
+
+
+func get_screenWidth() -> float:
 	return width * zoom;
-}
 
-public float screenHeight() {
+
+func get_screenHeight() -> float:
 	return height * zoom;
-}
 
-protected void updateMatrix() {
+
+func updateMatrix() -> void:
 	matrix[0] = +zoom * invW2;
 	matrix[5] = -zoom * invH2;
 
 	matrix[12] = -1 + x * invW2 - (scroll.x + shakeX) * matrix[0];
 	matrix[13] = +1 - y * invH2 - (scroll.y + shakeY) * matrix[5];
 
-}
 
-public void shake( float magnitude, float duration ) {
-	shakeMagX = shakeMagY = magnitude;
-	shakeTime = shakeDuration = duration;
-}
-}
+
+func shake(magnitude: float,duration: float ) -> void:
+	shakeMagX = magnitude
+	shakeMagY = magnitude;
+	shakeTime = duration
+	shakeDuration = duration;

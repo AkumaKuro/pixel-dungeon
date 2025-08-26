@@ -73,5 +73,3 @@ hero_subclasses = Dictionary[int, ExtResource("1_jmrm8")]({
 7: SubResource("Resource_qn7xf"),
 8: SubResource("Resource_l0aqu")
 })
-
-[node name="GridMap" type="GridMap" parent="."]
