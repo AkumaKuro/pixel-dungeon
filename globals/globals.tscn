@@ -6,6 +6,7 @@
 script/source = "extends Node
 
 @export var hero_subclasses: Dictionary[HeroSubClass.SubClass, HeroSubClass] = {}
+@export var cat_types: Dictionary[Category.CategoryType, Category] = {}
 "
 
 [sub_resource type="Resource" id="Resource_6nnoh"]
