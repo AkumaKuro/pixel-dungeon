@@ -80,12 +80,12 @@ func onCreate(savedInstanceState: Bundle) -> void:
 
 	setVolumeControlStream( AudioManager.STREAM_MUSIC );
 
-	view = GLSurfaceView.new( self );
-	view.setEGLContextClientVersion( 2 );
-	view.setEGLConfigChooser( false );
-	view.setRenderer( this );
-	view.setOnTouchListener( this );
-	setContentView( view );
+	#view = GLSurfaceView.new( self );
+	#view.setEGLContextClientVersion( 2 );
+	#view.setEGLConfigChooser( false );
+	#view.setRenderer( this );
+	#view.setOnTouchListener( this );
+	#setContentView( view );
 
 
 #@Override
@@ -93,7 +93,7 @@ func onResume() -> void:
 	super.onResume();
 
 	now = 0;
-	view.onResume();
+	#view.onResume();
 
 	Music.INSTANCE.resume();
 	Sample.INSTANCE.resume();
@@ -107,7 +107,7 @@ func onPause() -> void:
 		scene.pause();
 
 
-	view.onPause();
+	#view.onPause();
 	Script.reset();
 
 	Music.INSTANCE.pause();
@@ -125,7 +125,7 @@ func onDestroy() -> void:
 
 #@SuppressLint({ "Recycle", "ClickableViewAccessibility" })
 #@Override
-func onTouch(view: View, event: MotionEvent) -> bool:
+func onTouch(event: MotionEvent) -> bool: #view: View,
 	await func(motionEvents):
 		motionEvents.add( MotionEvent.obtain( event ) );
 

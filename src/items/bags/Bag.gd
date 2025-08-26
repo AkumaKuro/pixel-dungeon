@@ -24,7 +24,7 @@ func actions(hero: Hero) -> PackedStringArray:
 #@Override
 func execute_action(hero: Hero, action: String) -> void:
 	if action == AC_OPEN:
-		GameScene.show(WndBag.new( self, null, WndBag.Mode.ALL, null ) );
+		GameScene.show(.new( self, null, WndBag.Mode.ALL, null ) );
 
 	else:
 		super.execute_action( hero, action );

@@ -1,82 +1,46 @@
-/*
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
+class_name PScript
+extends Program
 
-package com.watabou.glscripts;
+static var all: Dictionary[String,PScript] = {}
 
-import java.util.HashMap;
+static var curScript: PScript = null;
+static var curScriptClass: String = null;
 
-import com.watabou.glwrap.Program;
-import com.watabou.glwrap.Shader;
+#@SuppressWarnings("unchecked")
+static func use(c: String) -> PScript:
+	if (c != curScriptClass):
+		var script: PScript = all.get( c );
+		if (script == null):
+			script = c.newInstance();
 
-public class Script extends Program {
+			all.put( c, script );
 
-	private static final HashMap<Class<? extends Script>,Script> all = 
-		new HashMap<Class<? extends Script>, Script>();
-	
-	private static Script curScript = null;
-	private static Class<? extends Script> curScriptClass = null;
-	
-	@SuppressWarnings("unchecked")
-	public static<T extends Script> T use( Class<T> c ) {
-		
-		if (c != curScriptClass) {
-			
-			Script script = all.get( c );
-			if (script == null) {
-				try {
-					script = c.newInstance();
-				} catch (Exception e) {
-					e.printStackTrace();
-				}
-				all.put( c, script );
-			}
-			
-			if (curScript != null) {
-				curScript.unuse();
-			}
-			
-			curScript = script;
-			curScriptClass = c;
-			curScript.use();
+		if (curScript != null):
+			curScript.unuse();
 
-		}
-		
-		return (T)curScript;
-	}
-	
-	public static void reset() {
-		for (Script script:all.values()) {
-			script.delete();
-		}
-		all.clear();
-		
-		curScript = null;
-		curScriptClass = null;
-	}
-	
-	public void compile( String src ) {
+		curScript = script;
+		curScriptClass = c;
+		curScript.use();
 
-		String[] srcShaders = src.split( "//\n" ); 
-		attach( Shader.createCompiled( Shader.VERTEX, srcShaders[0] ) );
-		attach( Shader.createCompiled( Shader.FRAGMENT, srcShaders[1] ) );
-		link();
+	return curScript;
 
-	}
-	
-	public void unuse() {
-	}
-}
+
+static func reset() -> void:
+	for script: PScript in all.values():
+		script.delete();
+
+	all.clear();
+
+	curScript = null;
+	curScriptClass = null;
+
+
+func compile(src: String) -> void:
+
+	var srcShaders: PackedStringArray = src.split( "//\n" );
+	attach( Shader.createCompiled( Shader.VERTEX, srcShaders[0] ) );
+	attach( Shader.createCompiled( Shader.FRAGMENT, srcShaders[1] ) );
+	link();
+
+func unuse() -> void:
+	pass
