@@ -22,27 +22,27 @@ func actions(hero: Hero) -> PackedStringArray:
 
 
 #@Override
-func execute(hero: Hero, action: String) -> void:
-	if (action.equals( AC_OPEN )):
-		GameScene.show(WndBag.new( this, null, WndBag.Mode.ALL, null ) );
+func execute_action(hero: Hero, action: String) -> void:
+	if action == AC_OPEN:
+		GameScene.show(WndBag.new( self, null, WndBag.Mode.ALL, null ) );
 
 	else:
-		super.execute( hero, action );
+		super.execute_action( hero, action );
 
 #@Override
-func collect(container: Bag) -> bool:
-	if (super.collect( container )):
+func collect_bag(container: Bag) -> bool:
+	if (super.collect_bag( container )):
 
 		owner = container.owner;
 
 		for item: Item in container.items:
 			if (grab( item )):
 				item.detachAll( container );
-				item.collect( this );
+				item.collect_bag( self );
 
 
 
-		Badges.validateAllBagsBought( this );
+		Badges.validateAllBagsBought( self );
 
 		return true;
 	else:
