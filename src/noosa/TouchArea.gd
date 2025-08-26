@@ -5,21 +5,21 @@ extends Visual #implements Signal.Listener<Touchscreen.Touch> {
 # Its target can be toucharea itself
 var target: Visual
 
-var touch: Touchscreen.Touch = null;
+var touch: Touch = null;
 
 func _init(target: Visual):
 	super( 0, 0, 0, 0 );
 	self.target = target;
 
-	Touchscreen.event.add( self );
+	Touchscreen.event.append( self );
 
 func _init_area(x: float,y: float,width: float,height: float ):
-	super( x, y, width, height );
-	this.target = this;
+	super._init( x, y, width, height );
+	self.target = self;
 
 	visible = false;
 
-	Touchscreen.event.add( this );
+	Touchscreen.event.append( self );
 
 
 #@Override
@@ -37,8 +37,8 @@ func onSignal(touch: Touch) -> void:
 
 		if (touch.down):
 
-			if (this.touch == null):
-				this.touch = touch;
+			if (self.touch == null):
+				self.touch = touch;
 
 			onTouchDown( touch );
 
@@ -46,17 +46,17 @@ func onSignal(touch: Touch) -> void:
 
 			onTouchUp( touch );
 
-			if (this.touch == touch):
-				this.touch = null;
+			if (self.touch == touch):
+				self.touch = null;
 				onClick( touch );
 
 	else:
-		if (touch == null && this.touch != null):
-			onDrag( this.touch );
+		if (touch == null && self.touch != null):
+			onDrag( self.touch );
 
 		elif (self.touch != null && touch != null && !touch.down):
 			onTouchUp( touch );
-			this.touch = null;
+			self.touch = null;
 
 
 
@@ -80,5 +80,5 @@ func reset() -> void:
 
 #@Override
 func destroy() -> void:
-	Touchscreen.event.remove( self );
+	Touchscreen.event.erase( self );
 	super.destroy();

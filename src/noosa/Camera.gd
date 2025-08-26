@@ -99,11 +99,11 @@ func _init(x: int,y: int,width: int,height: int, zoom: float) -> void:
 #@Override
 func destroy() -> void:
 	target = null;
-	matrix = null;
+	matrix = []
 
 
 func zoom_f(value: float) -> void:
-	zoom( value,
+	zoom_pos( value,
 		scroll.x + width / 2,
 		scroll.y + height / 2 );
 
@@ -118,10 +118,10 @@ func zoom_pos(value: float,fx: float,fy: float ) -> void:
 
 
 func resize(width: int, height: int) -> void:
-	this.width = width;
-	this.height = height;
-	screenWidth = (int)(width * zoom);
-	screenHeight = (int)(height * zoom);
+	self.width = width;
+	self.height = height;
+	screenWidth = (width * zoom);
+	screenHeight = (height * zoom);
 
 
 #@Override
@@ -129,7 +129,7 @@ func update() -> void:
 	super.update();
 
 	if (target != null):
-		focusOn( target );
+		focusOn_v( target );
 
 
 	shakeTime -= Game.elapsed
@@ -150,11 +150,11 @@ func center() -> PointF:
 
 
 func hitTest( x: float, y: float ) -> bool:
-	return x >= this.x && y >= this.y && x < this.x + screenWidth && y < this.y + screenHeight;
+	return x >= self.x && y >= self.y && x < self.x + screenWidth && y < self.y + screenHeight;
 
 
 func focusOn(x: float,y: float ) -> void:
-	scroll.set( x - width / 2, y - height / 2 );
+	scroll.set_float( x - width / 2, y - height / 2 );
 
 
 func focusOn_point(point: PointF) -> void:
@@ -162,19 +162,19 @@ func focusOn_point(point: PointF) -> void:
 
 
 func focusOn_v(visual: Visual) -> void:
-	focusOn( visual.center() );
+	focusOn_point( visual.center() );
 
 
 func screenToCamera(x: float,y: float ) -> PointF:
 	return PointF.new(
-		(x - this.x) / zoom + scroll.x,
-		(y - this.y) / zoom + scroll.y );
+		(x - self.x) / zoom + scroll.x,
+		(y - self.y) / zoom + scroll.y );
 
 
 func cameraToScreen(x: float,y: float ) -> Point:
 	return Point.new(
-		((x - scroll.x) * zoom + this.x),
-		((y - scroll.y) * zoom + this.y));
+		((x - scroll.x) * zoom + self.x),
+		((y - scroll.y) * zoom + self.y));
 
 
 func get_screenWidth() -> float:

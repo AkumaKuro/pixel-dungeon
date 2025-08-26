@@ -42,7 +42,7 @@ func get_camera() -> Camera:
 	if (camera != null):
 		return camera;
 	elif (parent != null):
-		return parent.camera();
+		return parent.get_camera();
 	else:
 		return null;
 

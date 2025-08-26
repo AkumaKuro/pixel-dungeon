@@ -84,7 +84,7 @@ func point_i(p: Point) -> Point:
 
 
 func center() -> PointF:
-	return PointF.new( x + width, y + height ) / 2
+	return PointF.new( x + width / 2, y + height / 2)
 
 
 func center_f(p: PointF) -> PointF:
@@ -220,7 +220,7 @@ func overlapsPoint(x: float,y: float ) -> bool:
 
 
 func overlapsScreenPoint( x: int, y: int ) -> bool:
-	var c: Camera = camera();
+	var c: Camera = get_camera();
 	if (c != null):
 		var p: PointF = c.screenToCamera( x, y );
 		return overlapsPoint( p.x, p.y );
@@ -231,9 +231,9 @@ func overlapsScreenPoint( x: int, y: int ) -> bool:
 
 # true if its bounding box intersects its camera's bounds
 func isVisible() -> bool:
-	var c: Camera = camera();
+	var c: Camera = get_camera();
 	var cx: float = c.scroll.x;
 	var cy: float = c.scroll.y;
-	var w: float = width();
-	var h: float = height();
+	var w: float = get_width();
+	var h: float = get_height();
 	return x + w >= cx && y + h >= cy && x < cx + c.width && y < cy + c.height;

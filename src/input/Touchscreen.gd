@@ -1,9 +1,9 @@
 class_name Touchscreen
 
 
-static var event: PSignal = Signal.new( true )
+static var event: PSignal = PSignal.new( true )
 
-static var pointers: Dictionary[Integer,Touch] = {}
+static var pointers: Dictionary[int,Touch] = {}
 
 static var x: float
 static var y: float
@@ -22,32 +22,37 @@ static func processTouchEvents(events: Array[MotionEvent]) -> void:
 			MotionEvent.ACTION_DOWN:
 				touched = true;
 				touch = Touch.new( e, 0 );
-				pointers.put( e.getPointerId( 0 ), touch );
+				pointers[e.getPointerId( 0 )] = touch
 				event.dispatch( touch );
 
 
 			MotionEvent.ACTION_POINTER_DOWN:
 				var index: int = e.getActionIndex();
 				touch = Touch.new( e, index );
-				pointers.put( e.getPointerId( index ), touch );
+				pointers[e.getPointerId( index )] = touch
 				event.dispatch( touch );
 
 
 			MotionEvent.ACTION_MOVE:
 				var count: int = e.getPointerCount();
 				for j: int in range (count):
-					pointers.get( e.getPointerId( j ) ).update( e, j );
+					pointers[e.getPointerId( j )].update( e, j );
 
 				event.dispatch( null );
 
 
 			MotionEvent.ACTION_POINTER_UP:
-				event.dispatch( pointers.remove( e.getPointerId( e.getActionIndex() ) ).up() );
+				var tmp = pointers[e.getPointerId( e.getActionIndex() )]
+				tmp.up()
+				pointers.erase(pointers[e.getPointerId( e.getActionIndex() )])
+				event.dispatch(tmp.up());
 
 
 			MotionEvent.ACTION_UP:
 				touched = false;
-				event.dispatch( pointers.remove( e.getPointerId( 0 ) ).up() );
+				var tmp = pointers[e.getPointerId( 0 )]
+				pointers.erase(e.getPointerId( 0 ))
+				event.dispatch( tmp.up() );
 
 
 
