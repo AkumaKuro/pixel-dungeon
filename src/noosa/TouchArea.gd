@@ -9,9 +9,9 @@ var touch: Touchscreen.Touch = null;
 
 func _init(target: Visual):
 	super( 0, 0, 0, 0 );
-	this.target = target;
+	self.target = target;
 
-	Touchscreen.event.add( this );
+	Touchscreen.event.add( self );
 
 func _init_area(x: float,y: float,width: float,height: float ):
 	super( x, y, width, height );

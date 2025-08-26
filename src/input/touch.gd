@@ -16,7 +16,7 @@ func _init(e: MotionEvent, index: int) -> void:
 
 
 func update(e: MotionEvent, index: int) -> void:
-	current.set( e.getX( index ), e.getY( index ) );
+	current.set_float( e.getX( index ), e.getY( index ) );
 
 
 func up() -> Touch:
