@@ -1,95 +1,71 @@
-/*
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
+class_name Atlas
 
-package com.watabou.gltextures;
+var tx: SmartTexture
 
-import java.util.HashMap;
+var namedFrames: Dictionary[Object,Rect2]
 
-import android.graphics.RectF;
+var uvLeft: float
+var uvTop: float
+var uvWidth: float
+var uvHeight: float
+var cols: int
 
-public class Atlas {
+func _init(tx: SmartTexture) -> void:
 
-	public SmartTexture tx;
-	
-	protected HashMap<Object,RectF> namedFrames;
-	
-	protected float uvLeft;
-	protected float uvTop;
-	protected float uvWidth;
-	protected float uvHeight;
-	protected int cols;
-	
-	public Atlas( SmartTexture tx ) {
-		
-		this.tx = tx;
-		tx.atlas = this;
-		
-		namedFrames = new HashMap<Object, RectF>();
-	}
-	
-	public void add( Object key, int left, int top, int right, int bottom ) {
-		add( key, uvRect( tx, left, top, right, bottom ) );
-	}
-	
-	public void add( Object key, RectF rect ) {
-		namedFrames.put( key, rect );
-	}
-	
-	public void grid( int width ) {
-		grid( width, tx.height );
-	}
-	
-	public void grid( int width, int height ) {
-		grid( 0, 0, width, height, tx.width / width );
-	}
-	
-	public void grid( int left, int top, int width, int height, int cols ) {
-		uvLeft	= (float)left	/ tx.width;
-		uvTop	= (float)top	/ tx.height;
-		uvWidth	= (float)width	/ tx.width;
-		uvHeight= (float)height	/ tx.height;
-		this.cols = cols;
-	}
-	
-	public RectF get( int index ) {
-		float x = index % cols;
-		float y = index / cols;
-		float l = uvLeft	+ x * uvWidth;
-		float t = uvTop	+ y * uvHeight;
-		return new RectF( l, t, l + uvWidth, t + uvHeight );
-	}
-	
-	public RectF get( Object key ) {
-		return namedFrames.get( key );
-	}
-	
-	public float width( RectF rect ) {
-		return rect.width() * tx.width;
-	}
-	
-	public float height( RectF rect ) {
-		return rect.height() * tx.height;
-	}
-	
-	public static RectF uvRect( SmartTexture tx, int left, int top, int right, int bottom ) {
-		return new RectF(
-			(float)left		/ tx.width,
-			(float)top		/ tx.height,
-			(float)right	/ tx.width,
-			(float)bottom	/ tx.height );
-	}
-}
+	self.tx = tx;
+	tx.atlas = self;
+
+	namedFrames = {}
+
+
+func add( key: Object, left: int, top: int, right: int, bottom: int ) -> void:
+	add_rect( key, uvRect( tx, left, top, right, bottom ) );
+
+
+func add_rect( key: Object, rect: Rect2 ) -> void:
+	namedFrames[key] = rect
+
+
+func grid( width: int ) -> void:
+	grid_v( width, tx.height );
+
+
+func grid_v( width: int, height: int ) -> void:
+	grid_all( 0, 0, width, height, tx.width / width );
+
+
+func grid_all( left: int, top: int, width: int, height: int, cols: int ) -> void:
+	uvLeft	= left	/ tx.width;
+	uvTop	= top	/ tx.height;
+	uvWidth	= width	/ tx.width;
+	uvHeight= height	/ tx.height;
+	self.cols = cols;
+
+
+func get_index(index: int) -> Rect2:
+	var x: float = index % cols;
+	var y: float = index / cols;
+	var left: float = uvLeft + x * uvWidth;
+	var top: float = uvTop	+ y * uvHeight;
+
+	var start: Vector2 = Vector2(left, top)
+	var size: Vector2 = Vector2(uvWidth, uvHeight)
+	return Rect2(start, size);
+
+
+func get_key(key: Object) -> Rect2:
+	return namedFrames[key]
+
+
+func width(rect: Rect2) -> float:
+	return rect.size.x * tx.width;
+
+
+func height(rect: Rect2) -> float:
+	return rect.size.y * tx.height;
+
+
+static func uvRect(tx: SmartTexture, left: int, top: int, right: int, bottom: int) -> Rect2:
+	var start: Vector2 = Vector2(left / tx.width, top / tx.height)
+	var size: Vector2 = Vector2(right / tx.width, bottom / tx.height) - start
+	return Rect2(start, size);
