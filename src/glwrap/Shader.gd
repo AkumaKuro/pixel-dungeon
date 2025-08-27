@@ -1,61 +1,66 @@
-/*
- * Copyright (C) 2012-2015 Oleg Dolya
- *
- * This program is free software: you can redistribute it and/or modify
- * it under the terms of the GNU General Public License as published by
- * the Free Software Foundation, either version 3 of the License, or
- * (at your option) any later version.
- *
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
- * GNU General Public License for more details.
- *
- * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>
- */
+class_name PShader
 
-package com.watabou.glwrap;
+const VERTEX: int		= GLES20.GL_VERTEX_SHADER;
+const FRAGMENT: int	= GLES20.GL_FRAGMENT_SHADER;
 
-import android.opengl.GLES20;
+class GLES20:
+	const GL_VERTEX_SHADER: int = 0
+	const GL_FRAGMENT_SHADER: int = 2
+	const GL_COMPILE_STATUS: int = 3
+	const GL_FALSE: int = 4
+	static func glCreateShader(type: int) -> GLES20:
+		return GLES20.new()
 
-public class Shader {
+	static func glShaderSource(handle: GLES20, src: String) -> void:
+		pass
 
-	public static final int VERTEX		= GLES20.GL_VERTEX_SHADER;
-	public static final int FRAGMENT	= GLES20.GL_FRAGMENT_SHADER;
-	
-	private int handle;
-	
-	public Shader( int type ) {
-		handle = GLES20.glCreateShader( type );
-	}
-	
-	public int handle() {
-		return handle;
-	}
-	
-	public void source( String src ) {
-		GLES20.glShaderSource( handle, src );
-	}
-	
-	public void compile() {
-		GLES20.glCompileShader( handle );
+	static func glCompileShader(handle: GLES20) -> void:
+		pass
 
-		int[] status = new int[1];
-		GLES20.glGetShaderiv( handle, GLES20.GL_COMPILE_STATUS, status, 0 );
-		if (status[0] == GLES20.GL_FALSE) {
-			throw new Error( GLES20.glGetShaderInfoLog( handle ) );
-		}
-	}
-	
-	public void delete() {
-		GLES20.glDeleteShader( handle );
-	}
-	
-	public static Shader createCompiled( int type, String src ) {
-		Shader shader = new Shader( type );
-		shader.source( src );
-		shader.compile();
-		return shader;
-	}
+	static func glDeleteShader(handle: GLES20) -> void:
+		pass
+
+	static func glGetShaderiv( handle: GLES20, status: int, status_data: PackedInt32Array, mode: int) -> void:
+		pass
+
+	static func glGetShaderInfoLog(handle: GLES20) -> String:
+		return ''
+
+enum ShaderType {
+	VERTEX,
+	FRAGMENT
 }
+
+var handle: GLES20
+
+func _init(type: int) -> void:
+	handle = GLES20.glCreateShader( type );
+
+
+func get_handle() -> GLES20:
+	return handle;
+
+
+func source(src: String) -> void:
+	GLES20.glShaderSource( handle, src );
+
+
+func compile() -> void:
+	GLES20.glCompileShader( handle );
+
+	var status: PackedInt32Array = [0]
+	GLES20.glGetShaderiv( handle, GLES20.GL_COMPILE_STATUS, status, 0 );
+	if (status[0] == GLES20.GL_FALSE):
+		printerr( GLES20.glGetShaderInfoLog( handle ) );
+
+
+
+func delete() -> void:
+	GLES20.glDeleteShader( handle );
+
+
+static func createCompiled(type: int, src: String) -> PShader:
+	var shader: PShader = PShader.new( type );
+	shader.source( src );
+	shader.compile();
+	return shader;
