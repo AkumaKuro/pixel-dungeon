@@ -183,15 +183,6 @@ func onClick(tab: Tab) -> void:
 func tabHeight() -> int:
 	return 20;
 
-
-
-
-
-
-
-
-
-public interface Listener {
-	void onSelect( Item item );
-}
-}
+class Listener:
+	func onSelect(item: Item) -> void:
+		pass
